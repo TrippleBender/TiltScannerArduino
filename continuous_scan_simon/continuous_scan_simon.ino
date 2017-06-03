@@ -1,16 +1,12 @@
 #define USE_USBCON
 #include <ArduinoHardware.h>
 #include <ros.h>
-//#include <avr/wdt.h>
 
 #include <DynamixelMotor.h>
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt16.h>
 #include <tilt_scanner/MsgSettings.h>
-
-//#include <std_msgs/Int64.h>
-//#include <tilt_scanner/MsgLevelling.h>
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -56,14 +52,12 @@ const uint16_t minValueRoll = 1482;
 const uint16_t maxValueRoll = 2614;
 
 uint16_t pitch = 0, roll = 0;
-//uint16_t compare_pitch = 0, compare_roll = 0;
 
 
 // --settings of service--
 uint16_t dynamixelSpeed = 0;
 uint16_t startPosition = 0;
 uint16_t endPosition = 0;
-
 
 
 ros::NodeHandle nh;
@@ -78,6 +72,7 @@ void subsettings(const tilt_scanner::MsgSettings& sub_settings)
   startReceived = true;
 }
 ros::Subscriber<tilt_scanner::MsgSettings> subSettings("settings", &subsettings);
+
 
 void subreboot(const std_msgs::UInt16& sub_reboot)
 {
@@ -97,14 +92,11 @@ ros::Publisher pubPitch("pitch", &pub_pitch);
 std_msgs::UInt16 pub_state;
 ros::Publisher pubState("state", &pub_state);
 
-/*tilt_scanner::MsgLevelling pub_levelling;
-ros::Publisher pubLevelling("levelling", &pub_levelling);*/
-
 
 
 Adafruit_BNO055 bno = Adafruit_BNO055();                              //set ... of sensor
 
-SoftwareDynamixelInterface interface(RX,TX,CP);                       //set (RX,TX,Controlpin)            ----hieß anders mit der alten ardyno Version -DynamixelInterface &interface=*createSoftSerialInterface(RX,TX,CP);
+SoftwareDynamixelInterface interface(RX,TX,CP);                       //set (RX,TX,Controlpin)  ---hieß anders mit der alten ardyno Version -DynamixelInterface &interface=*createSoftSerialInterface(RX,TX,CP);
 
 DynamixelMotor motor_pitch(interface, id_pitch);                      //set id of Dynamixel_pitch
 
@@ -150,33 +142,23 @@ void setup() {
   motor_roll.init();
   motor_roll.enableTorque();
 
-  motor_pitch.jointMode(minValuePitch, maxValuePitch);                                             //choose 'jointMode' to enable 'goalPosition'
-  motor_pitch.speed(approachSpeed);                                    //adjustment of speed of the Dynamixel [0.114rpm]
-  motor_pitch.goalPosition(homePositionPitch);                              //drive to home position
+  motor_pitch.jointMode(minValuePitch, maxValuePitch);                //choose 'jointMode' to enable 'goalPosition'
+  motor_pitch.speed(approachSpeed);                                   //adjustment of speed of the Dynamixel [0.114rpm]
+  motor_pitch.goalPosition(homePositionPitch);                        //drive to home position
   
   motor_roll.jointMode(minValueRoll, maxValueRoll);
   motor_roll.speed(approachSpeed);
   motor_roll.goalPosition(homePositionRoll);
 
-  /*bno.setMode( bno.OPERATION_MODE_CONFIG );
-  delay(25);  
 
-  Adafruit_BNO055 bno_A = Adafruit_BNO055(0x00, 0x17);                   //disable interrupts ...(VALUE, ADDRESS)
-  Adafruit_BNO055 bno_B = Adafruit_BNO055(0x00, 0x12);
-
-  bno.setMode( bno.OPERATION_MODE_NDOF );
-  delay(25);*/
-
-  while(result_pitch || result_roll)                                   //wait for receiving home position
+  while(result_pitch || result_roll)                                  //wait for receiving home position
   {
     delay(serviceT);
-    motor_pitch.read(0x2E, result_pitch);                              //result = 1 --> moving | result = 0 --> standing
+    motor_pitch.read(0x2E, result_pitch);                             //result = 1 --> moving | result = 0 --> standing
     motor_roll.read(0x2E, result_roll);
   }
 
   pinMode(LED_BUILTIN, OUTPUT);
-  
-  //wdt_enable(WDTO_500MS);
 }
 
 void loop() {
@@ -190,10 +172,7 @@ void loop() {
       motor_pitch.led(LOW);
       motor_roll.led(LOW);
 
-      /*compare_roll = roll;
-      compare_pitch = pitch;*/
-
-      motor_pitch.speed(levelSpeed);                                    //levelling the laserscanner
+      motor_pitch.speed(levelSpeed);                                  //levelling the laserscanner
       motor_roll.speed(levelSpeed);
       
       imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_EULER);
@@ -212,14 +191,12 @@ void loop() {
       
     case 2:
     {
-      motor_pitch.led(LOW);                                             //set Motorled low, if IMU has interrupted
+      motor_pitch.led(LOW);                                           //set Motorled low, if IMU has interrupted
       motor_roll.led(LOW);
       digitalWrite(LED_BUILTIN, LOW);
-
-//      wdt_reset();
       
       motor_pitch.speed(approachSpeed);      
-      motor_pitch.goalPosition(startPosition);                          //drive to startposition
+      motor_pitch.goalPosition(startPosition);                        //drive to startposition
       
       delay(serviceT);
       motor_pitch.read(0x2E, result_pitch);                            
@@ -232,11 +209,9 @@ void loop() {
     break;
 
     case 3:
-    {
-//      wdt_reset();
-      
+    {      
       motor_pitch.speed(dynamixelSpeed);
-      motor_pitch.goalPosition(endPosition);                            //continuous moving to endposition
+      motor_pitch.goalPosition(endPosition);                          //continuous moving to endposition
       
       delay(serviceT);
       motor_pitch.read(0x2E, result_pitch);
@@ -249,11 +224,9 @@ void loop() {
     break;
     
     case 4:
-    {
-//      wdt_reset();
-      
+    {      
       motor_pitch.speed(approachSpeed);
-      motor_pitch.goalPosition(pitch);                                  //scan complete, drive back to homeposition
+      motor_pitch.goalPosition(pitch);                                //scan complete, drive back to homeposition
       
       delay(serviceT);
       motor_pitch.read(0x2E, result_pitch);
@@ -269,7 +242,7 @@ void loop() {
     break;
   }
 
-  if(digitalRead(INT) || (bool)reboot || roll == (uint16_t) roll_offset && pitch == (uint16_t) pitch_offset)                                                  //reset IMU and set Motorled high, if IMU interrupts 
+  if(digitalRead(INT) || (bool)reboot || roll == (uint16_t) roll_offset && pitch == (uint16_t) pitch_offset)       //reset IMU and set Motorled high, if IMU interrupts 
   {
     reboot = 0;
     digitalWrite(RST, LOW);
@@ -289,16 +262,7 @@ void loop() {
     delay (100);
   }
 
-  /* roll != (uint16_t) roll_offset || pitch != (uint16_t) pitch_offset || compare_roll < roll-tolerance || compare_roll > roll+tolerance || compare_pitch < pitch-tolerance || compare_pitch > pitch+tolerance
-     
-  
-  if(roll != (uint16_t) roll_offset || pitch != (uint16_t) pitch_offset)                    //reset watchdog, if IMU give new angel
-  {
-    wdt_reset();
-  }*/
-  
-
-  pub_pitch.data = motor_pitch.currentPosition();                       //publish start position
+  pub_pitch.data = motor_pitch.currentPosition();                     //publish start position
   pubPitch.publish(&pub_pitch);
 
   pub_roll.data = motor_roll.currentPosition();
