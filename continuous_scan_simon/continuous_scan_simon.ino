@@ -262,13 +262,13 @@ void loop() {
     delay (100);
   }
 
-  pub_pitch.data = motor_pitch.currentPosition();                     //publish start position
+  pub_pitch.data = motor_pitch.currentPosition();                     //publish current pitch angle
   pubPitch.publish(&pub_pitch);
 
-  pub_roll.data = motor_roll.currentPosition();
+  pub_roll.data = motor_roll.currentPosition();                       //publish current roll angle
   pubRoll.publish(&pub_roll);
 
-  pub_state.data = (uint16_t)(situation);
+  pub_state.data = (uint16_t)(situation);                             //publish current state
   pubState.publish(&pub_state);
   
   nh.spinOnce();
