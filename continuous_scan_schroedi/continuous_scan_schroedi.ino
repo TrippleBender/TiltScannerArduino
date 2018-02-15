@@ -1,12 +1,13 @@
 #define USE_USBCON
-#include <ArduinoHardware.h>
+
 #include <ros.h>
+#include <ArduinoHardware.h>
 
 #include <DynamixelMotor.h>
 
 #include <std_msgs/Bool.h>
 #include <std_msgs/UInt16.h>
-#include <tilt_scanner/MsgSettings.h>
+#include <ohm_tilt_scanner_3d/MsgScanParams.h>
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -65,20 +66,20 @@ ros::NodeHandle nh;
 
 // --Subscriber--
 
-void subsettings(const tilt_scanner::MsgSettings& sub_settings)
+void subscanparams(const ohm_tilt_scanner_3d::MsgScanParams& sub_scanparams)
 {
-  dynamixelSpeed = sub_settings.speed;
-  startPosition = sub_settings.startPosition;
-  endPosition = sub_settings.endPosition;
+  dynamixelSpeed = sub_scanparams.speed;
+  startPosition = sub_scanparams.startPosition;
+  endPosition = sub_scanparams.endPosition;
   startReceived = true;
 }
-ros::Subscriber<tilt_scanner::MsgSettings> subSettings("settings", &subsettings);
+ros::Subscriber<ohm_tilt_scanner_3d::MsgScanParams> subScanParams("scanparams", &subscanparams);
 
 void subreboot(const std_msgs::UInt16& sub_reboot)
 {
   reboot = sub_reboot.data;
 }
-ros::Subscriber<std_msgs::UInt16> subReboot("tiltScanner/reboot", &subreboot);
+ros::Subscriber<std_msgs::UInt16> subReboot("ohmTiltScanner3d/reboot", &subreboot);
 
 
 // --Publisher--
@@ -114,7 +115,7 @@ void setup() {
 
   // --Subscriber--
   
-  nh.subscribe(subSettings);
+  nh.subscribe(subScanParams);
   nh.subscribe(subReboot);
 
 
