@@ -24,6 +24,7 @@ uint8_t situation = 1;
 uint16_t result_roll = 1;
 uint16_t result_pitch = 1;
 uint16_t dynamixelPosition = 0;
+uint16_t startT = 0;
 
 bool startReceived = false;
 
@@ -40,6 +41,8 @@ const uint8_t id_pitch = 2;
 const uint8_t id_roll = 1;
 const uint32_t baudrate = 57142;
 const uint8_t serviceT = 10;
+const uint16_t waitT = 1000;
+
 
 uint16_t approachSpeed = 150;
 const static uint16_t levelSpeed = 1024;
@@ -151,12 +154,19 @@ void setup() {
   motor_roll.speed(approachSpeed);
   motor_roll.goalPosition(homePositionRoll);
 
+  startT = millis();
 
   while(result_pitch || result_roll)                                  //wait for receiving home position
   {
     delay(serviceT);
     motor_pitch.read(0x2E, result_pitch);                             //result = 1 --> moving | result = 0 --> standing
     motor_roll.read(0x2E, result_roll);
+
+    if(millis() - startT >= waitT)                                    //emergency leave of the loop
+    {
+      result_pitch = 0;
+      result_roll = 0;
+    }
   }
 
   pinMode(LED_BUILTIN, OUTPUT);
