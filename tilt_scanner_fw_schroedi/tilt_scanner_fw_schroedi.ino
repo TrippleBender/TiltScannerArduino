@@ -45,7 +45,7 @@ const uint16_t waitT = 1000;
 
 
 uint16_t approachSpeed = 150;
-const static uint16_t levelSpeed = 1024;
+const static uint16_t levelSpeed = 1023;
 
 const uint16_t homePositionPitch = 2048;
 const uint16_t minValuePitch = 1140;

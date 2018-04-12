@@ -42,7 +42,7 @@ const uint32_t baudrate = 57142;
 const uint8_t serviceT = 10;
 
 uint16_t approachSpeed = 150;
-const static uint16_t levelSpeed = 1024;
+const static uint16_t levelSpeed = 1023;
 
 const uint16_t homePositionPitch = 2276;
 const uint16_t minValuePitch = 1022;
